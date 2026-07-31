@@ -1,0 +1,48 @@
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 30px;
+
+}
+
+.header h1 {
+    font-size: 38px;
+    font-weight: 700;
+}
+
+.search {
+    flex: 1;
+    height: 42px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 0 16px;
+    font-size: 15px;
+    outline: none;
+    transition: .2s;
+}
+
+.search:focus {
+
+    border-color: #444;
+}
+
+.upload {
+    height: 42px;
+    padding: 0 24px;
+    background: #111827;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.upload:hover {
+
+    background: #1f2937;
+}
