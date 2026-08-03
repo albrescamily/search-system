@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 /qdrant
 raft_state.json
+.claude

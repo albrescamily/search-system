@@ -1,9 +1,10 @@
 import io
-import uuid
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
-from qdrant_client.http import models as qdrant_models
+from app.services.storage_service import upload_to_s3
+from app.services.embedding_service import embed_image_from_s3
+from app.services.indexing_service import index_image
 
 from core.clients import BUCKET, QDRANT_COLLECTION, model, qdrant_client, s3_client
 
@@ -21,31 +22,25 @@ async def root():
     return {"status": "Server is running smoothly!"}
 
 
-@app.post("/embed/image")
-async def embed_image(file: UploadFile = File(...)):
-    img = Image.open(io.BytesIO(await file.read()))
-    embedding = model.encode(img).tolist()
-    print(embedding)
-
-
-
-
-    return {"embedding": embedding}
-
-
-@app.post("/embed/text")
-async def embed_text(text: str):
-    embedding = model.encode(text).tolist()
-    return {"embedding": embedding}
+# async def embed_image(file: UploadFile = File(...)):
+#     img = Image.open(io.BytesIO(await file.read()))
+#     embedding = model.encode(img).tolist()
+#     print(embedding)
+ 
+#     return {"embedding": embedding}
 
 
 @app.post("/upload")
-async def upload(file: UploadFile = File(...)):
-    s3_client.upload_fileobj(
-        file.file,
-        BUCKET,
-        file.filename
-    )
+async def upload_image(file: UploadFile = File(...)):
+    # s3_client.upload_fileobj(
+    #     file.file,
+    #     BUCKET,
+    #     file.filename
+    # )
+    bucket, key = upload_to_s3(file)
+
+    embedding = embed_image_from_s3(bucket, key)
+    index_image(bucket, key, embedding)
 
     return {"message": "Uploaded successfully!"}
 
