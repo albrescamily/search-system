@@ -1,24 +1,42 @@
+import io
+import uuid
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-import boto3
+from PIL import Image
+from qdrant_client.http import models as qdrant_models
 
-BUCKET = "my-local-s3-bucket"
+from core.clients import BUCKET, QDRANT_COLLECTION, model, qdrant_client, s3_client
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    "http://localhost:5173",
+    allow_origins=["http://localhost:5173"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize the low-level S3 client
-s3_client = boto3.client('s3',  
-    endpoint_url="http://localhost.localstack.cloud:4566",
-    region_name="us-east-1",
-    aws_access_key_id="test",
-    aws_secret_access_key="test")
+@app.get("/")
+async def root():
+    return {"status": "Server is running smoothly!"}
+
+
+@app.post("/embed/image")
+async def embed_image(file: UploadFile = File(...)):
+    img = Image.open(io.BytesIO(await file.read()))
+    embedding = model.encode(img).tolist()
+    print(embedding)
+
+
+
+
+    return {"embedding": embedding}
+
+
+@app.post("/embed/text")
+async def embed_text(text: str):
+    embedding = model.encode(text).tolist()
+    return {"embedding": embedding}
 
 
 @app.post("/upload")
@@ -50,10 +68,12 @@ async def list_images():
 
     return {"images": images}
 
+
 @app.delete("/delete-image")
-async def delete_image(key:str):
-    response = s3_client.delete_object(
+async def delete_image(key: str):
+    s3_client.delete_object(
         Bucket=BUCKET,
         Key=key
-
     )
+
+    return {"message": "Deleted successfully!"}
