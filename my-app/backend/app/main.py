@@ -3,9 +3,10 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from app.services.storage_service import upload_to_s3
-from app.services.embedding_service import embed_image_from_s3
+from app.services.embedding_service import embed_image_from_s3,embed_text_query
 from app.services.indexing_service import index_image
-
+from app.services.ann_service import ann_search 
+from app.services.reranking_service import rerank_search
 from core.clients import BUCKET, QDRANT_COLLECTION, model, qdrant_client, s3_client
 
 app = FastAPI()
@@ -32,17 +33,35 @@ async def root():
 
 @app.post("/upload")
 async def upload_image(file: UploadFile = File(...)):
-    # s3_client.upload_fileobj(
-    #     file.file,
-    #     BUCKET,
-    #     file.filename
-    # )
     bucket, key = upload_to_s3(file)
 
     embedding = embed_image_from_s3(bucket, key)
+    print(embedding)
     index_image(bucket, key, embedding)
 
     return {"message": "Uploaded successfully!"}
+
+
+@app.post("/query_text")
+async def input_query_text(query: str):
+
+    query_embed = embed_text_query(query)
+    results = ann_search(query_embed)
+
+    images = [
+        {
+            "key": payload["key"],
+            "url": s3_client.generate_presigned_url(
+                "get_object",
+                Params={"Bucket": payload["bucket"], "Key": payload["key"]},
+                ExpiresIn=3600,
+            ),
+        }
+        for payload in results
+    ]
+
+    return {"images": images}
+
 
 
 @app.get("/images")

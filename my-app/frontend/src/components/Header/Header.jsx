@@ -1,13 +1,26 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import {
   triggerFileDialog,
   handleUploadedFiles,
   uploadFilesToS3,
 } from "../../utils/uploadUtils";
+import { sendQuery } from "../../utils/searchUtils";
 import "./Header.css"
 
-export default function Header() {
+export default function Header({ setImages }) {
   const fileInputRef = useRef(null);
+  const [query, setQuery] = useState("");
+
+  const handleSendQuery = async () => {
+    if (!query.trim()) return;
+
+    try {
+      const images = await sendQuery(query);
+      setImages(images);
+    } catch (err) {
+      console.error("Search failed:", err);
+    }
+  };
 
   return (
     <header className="header">
@@ -17,6 +30,11 @@ export default function Header() {
         className="search"
         type="search"
         placeholder="Search images..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleSendQuery();
+        }}
       />
 
       <button

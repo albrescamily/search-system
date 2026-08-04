@@ -8,5 +8,9 @@ def embed_image_from_s3(bucket: str, key: str):
         key,
     )
     embeddings = model.encode(image).tolist()
-    print(embeddings)
+    return embeddings
+
+
+def embed_text_query(query: str):
+    embeddings = model.encode(query).tolist()
     return embeddings

@@ -1,22 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { fetchImages, deleteImage } from "../../utils/imageUtils";
 import "./ImageGrid.css";
 
-export default function ImageGrid() {
-  const [images, setImages] = useState([]);
-
+export default function ImageGrid({ images, setImages }) {
   useEffect(() => {
     fetchImages()
-      .then((fetched) =>
-        setImages(
-          fetched.map((image) => ({
-            key: image.key,
-            src: image.url,
-            alt: image.key,
-            title: image.key,
-          }))
-        )
-      )
+      .then((fetched) => setImages(fetched))
       .catch((err) => console.error("Failed to load images:", err));
   }, []);
 
@@ -33,8 +22,8 @@ const handleDelete = async (key) => {
     <section className="image-grid">
       {images.map((image) => (
         <div key={image.key} className="image-card">
-          <img src={image.src} alt={image.alt} />
-          <div className="image-card__title">{image.title}</div>
+          <img src={image.url} alt={image.key} />
+          <div className="image-card__title">{image.key}</div>
           <button
             type="button"
             className="image-card__delete"
