@@ -1,13 +1,10 @@
-import io
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
 from app.services.storage_service import upload_to_s3
 from app.services.embedding_service import embed_image_from_s3,embed_text_query
 from app.services.indexing_service import index_image
 from app.services.ann_service import ann_search 
-from app.services.reranking_service import rerank_search
-from core.clients import BUCKET, QDRANT_COLLECTION, model, qdrant_client, s3_client
+from core.clients import BUCKET, s3_client
 
 app = FastAPI()
 
@@ -21,15 +18,6 @@ app.add_middleware(
 @app.get("/")
 async def root():
     return {"status": "Server is running smoothly!"}
-
-
-# async def embed_image(file: UploadFile = File(...)):
-#     img = Image.open(io.BytesIO(await file.read()))
-#     embedding = model.encode(img).tolist()
-#     print(embedding)
- 
-#     return {"embedding": embedding}
-
 
 @app.post("/upload")
 async def upload_image(file: UploadFile = File(...)):
